@@ -1,0 +1,183 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+struct Emp {
+    int id;
+    string name, dob, phone, address;
+    Emp* next;
+    Emp(int i=0,const string& n="",const string& d="",const string& p="",const string& a=""):id(i),name(n),dob(d),phone(p),address(a),next(nullptr){}
+};
+
+class EmpLinkedList {
+private:
+    Emp* sentinel; 
+    int sz;
+public:
+    EmpLinkedList(){ 
+        sentinel = new Emp(); 
+        sz = 0; 
+    }
+    ~EmpLinkedList(){ 
+        while(!IsEmpty()) DeleteFront(); 
+        delete sentinel; 
+}
+
+    bool IsEmpty(){ return sentinel->next == nullptr; }
+
+    Emp* Front(){ return sentinel->next; }
+
+    Emp* Back(){
+        Emp* cur = sentinel;
+        while(cur->next) cur = cur->next;
+        return (cur==sentinel? nullptr : cur);
+    }
+
+    void Print_List(){
+        if(IsEmpty()){ cout<<"[Empty]\n"; return; }
+        for(Emp* cur=sentinel->next; cur; cur=cur->next){
+            cout << "ID="<<cur->id<<", Name="<<cur->name<<", DOB="<<cur->dob
+                 << ", Phone="<<cur->phone<<", Address="<<cur->address<<'\n';
+        }
+    }
+
+    void AddFront(Emp* e){
+        if(!e) return;
+        e->next = sentinel->next;
+        sentinel->next = e;
+        ++sz;
+    }
+
+    void AddBack(Emp* e){
+        if(!e) return;
+        Emp* cur = sentinel;
+        while(cur->next) cur = cur->next;
+        cur->next = e;
+        e->next = nullptr;
+        ++sz;
+    }
+
+    void DeleteFront(){
+        if(IsEmpty()) return;
+        Emp* del = sentinel->next;
+        sentinel->next = del->next;
+        delete del;
+        --sz;
+    }
+
+    void DeleteBack(){
+        if(IsEmpty()) return;
+        Emp* prev = sentinel;
+        Emp* cur = sentinel->next;
+        while(cur->next){ prev = cur; cur = cur->next; }
+        prev->next = nullptr;
+        delete cur;
+        --sz;
+    }
+
+    Emp* Find(int key){
+        for(Emp* cur=sentinel->next; cur; cur=cur->next) if(cur->id==key) return cur;
+        return nullptr;
+    }
+
+    void Modify(int key, const string& n, const string& d, const string& p, const string& a){
+        Emp* e = Find(key);
+        if(!e){ 
+            cout<<"No employee with ID "<<key<<'.'<<endl; 
+            return; 
+        }
+        e->name=n; e->dob=d; e->phone=p; e->address=a;
+    }
+
+    void Add(Emp* e){
+        if(!e) return;
+        Emp* prev = sentinel;
+        Emp* cur  = sentinel->next;
+        while(cur && cur->id < e->id){ 
+            prev = cur; 
+            cur = cur->next; 
+        }
+        e->next = cur;
+        prev->next = e;
+        ++sz;
+    }
+
+    void Delete(int key){
+        Emp* prev = sentinel;
+        Emp* cur  = sentinel->next;
+        while(cur && cur->id != key){ prev = cur; cur = cur->next; }
+        if(!cur){ 
+            cout<<"No employee with ID "<<key<<'.'<<endl; 
+            return; 
+        }
+        prev->next = cur->next;
+        delete cur;
+        --sz;
+    }
+
+    int Count(){ return sz; }
+};
+
+static void menu(){
+    cout << "\n== EMP Menu ==\n"
+         << "1 Front  2 Back  3 Print  4 AddFront  5 AddBack\n"
+         << "6 DelFront  7 DelBack  8 Find  9 Modify\n"
+         << "10 Add(ordered)  11 Delete(ID)  12 Count  0 Exit\n";
+}
+
+static Emp* readEmp(){
+    int id; string name,dob,phone,address;
+    cout<<"ID: "; cin>>id;
+    cout<<"Name: "; cin>>ws; getline(cin,name);
+    cout<<"DOB: "; getline(cin,dob);
+    cout<<"Phone: "; getline(cin,phone);
+    cout<<"Address: "; getline(cin,address);
+    return new Emp(id,name,dob,phone,address);
+}
+
+int main(){
+    EmpLinkedList L;
+    int ch;
+    do{
+        menu();
+        cout<<"Choice: ";
+        if(!(cin>>ch)) break;
+        if(ch==1){
+            auto *f=L.Front(); if(!f) cout<<"[Empty]\n";
+            else cout<<f->id<<" | "<<f->name<<" | "<<f->dob<<" | "<<f->phone<<" | "<<f->address<<'\n';
+        } else if(ch==2){
+            auto *b=L.Back(); if(!b) cout<<"[Empty]\n";
+            else cout<<b->id<<" | "<<b->name<<" | "<<b->dob<<" | "<<b->phone<<" | "<<b->address<<'\n';
+        } else if(ch==3){
+            L.Print_List();
+        } else if(ch==4){
+            L.AddFront(readEmp());
+        } else if(ch==5){
+            L.AddBack(readEmp());
+        } else if(ch==6){
+            L.DeleteFront();
+        } else if(ch==7){
+            L.DeleteBack();
+        } else if(ch==8){
+            int k; cout<<"Find ID: "; cin>>k;
+            if(auto *e=L.Find(k)) cout<<"Found: "<<e->name<<'\n'; else cout<<"Not found\n";
+        } else if(ch==9){
+            int k; cout<<"Modify ID: "; cin>>k;
+            cout<<"New Name/DOB/Phone/Address:\n";
+            string n,d,p,a; cin>>ws; getline(cin,n); getline(cin,d); getline(cin,p); getline(cin,a);
+            L.Modify(k,n,d,p,a);
+        } else if(ch==10){
+            L.Add(readEmp());
+        } else if(ch==11){
+            int k; cout<<"Delete ID: "; cin>>k; L.Delete(k);
+        } else if(ch==12){
+            cout<<"Employees: "<<L.Count()<<'\n';
+        } else if(ch==0){
+            cout<<"Bye\n";
+        } else {
+            cout<<"Invalid\n";
+        }
+    }
+while(ch!=0);
+    return 0;
+}
